@@ -25,7 +25,8 @@
                 minLongitude : null,
                 minLatitude : null,
                 maxLongitude : null,
-                maxLatitude : null
+                maxLatitude : null,
+                perKmFuelCost : 16
             };
         },
         watch : {
@@ -34,6 +35,7 @@
             },
             pickupCoordinates(newValue, oldValue) {
                 if(this.pickupAddressMarker !== null) {
+                    this.$emit('no-details-found');
                     this.pickupAddressMarker.remove();
                 }
 
@@ -45,6 +47,7 @@
             },
             dropoffCoordinates(newValue, oldValue) {
                 if(this.dropoffAddressMarker !== null) {
+                    this.$emit('no-details-found');
                     this.dropoffAddressMarker.remove();
                 }
 
@@ -238,7 +241,7 @@
                     },
                     'paint': {
                         'line-color': '#888',
-                        'line-width': 8
+                        'line-width': 4
                     }
                 });
 
@@ -251,8 +254,10 @@
                 }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[1]));
 
                 this.map.fitBounds(bounds, {
-                    padding: 50
+                    padding: 80
                 });
+
+                this.getParcelDetails();
             },
             drawCircle() {
                 let root = this;
@@ -286,7 +291,7 @@
                     }, new mapboxgl.LngLatBounds(getCircleBoundaries[0], getCircleBoundaries[1]));
 
                     root.map.fitBounds(bounds, {
-                        padding: 50
+                        padding: 80
                     });
 
                     root.setRectangleBoundaryBox(circle.geometry.coordinates[0]);
@@ -349,6 +354,32 @@
                         root.$emit('current-location-coordinates', root.currentLocationCoordinates, data.features[0].place_name);
                     }, (error) => {
                         root.$emit('current-location-coordinates', root.currentLocationCoordinates, 'Your Location');
+                    });
+            },
+            getParcelDetails() {
+                let searchUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/` 
+                + `${this.pickupCoordinates[0]},${this.pickupCoordinates[1]};${this.dropoffCoordinates[0]},${this.dropoffCoordinates[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}&overview=full&annotations=distance,duration`;
+
+                let parcelDetails = {
+                    distance : 'N/A',
+                    duration : 'N/A',
+                    cost : 'N/A'
+                };
+
+                let root = this;
+
+                axios.get(searchUrl)
+                    .then((response) => {
+                        let data = response.data;
+                        console.log(data);
+                        
+                        parcelDetails.distance = (data.routes[0].distance/1000).toFixed(2);
+                        parcelDetails.duration = data.routes[0].duration;
+                        parcelDetails.cost = (parcelDetails.distance * this.perKmFuelCost).toFixed(2);
+
+                        root.$emit('new-details-found', parcelDetails);
+                    }, (error) => {
+                        root.$emit('new-details-found', parcelDetails);
                     });
             }
         }
