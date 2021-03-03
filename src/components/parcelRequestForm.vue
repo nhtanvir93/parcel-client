@@ -1,50 +1,59 @@
 <template>
-    <div id="parcel-form-request">
-        <form>
-            <p id="form-header">Parcel request</p>
-            <div class="input-group input-group-sm mb-3">
-                <input autocomplete="off" type="text" class="form-control input-sm" @keyup="search($event)" id="pickup-address" placeholder="Pickup address" v-model="pickupAddress"
-                       aria-label="pickup-address" aria-describedby="pickup-address" @focus="setPickupAddressFocused()">
-                <div class="autocomplete-items">
-                    <div class="search-running" v-if="isPickupAddressSearch">
-                        Searching
-                    </div>
-                    <div v-if="currentLocationCoordinates !== null" :class="{ show : isPickupAddressFocused, hide : !isPickupAddressFocused }" @click="setPickupCoordinates($event)">
-                        Your Location ({{ currentLocationName }})
-                        <input type="hidden" class="pickup-place-name" :value="currentLocationName">
-                        <input type="hidden" class="pickup-longitude" :value="currentLocationCoordinates[0]">
-                        <input type="hidden" class="pickup-latitude" :value="currentLocationCoordinates[1]">
-                    </div>
-                    <div v-for="(matchedPickupAddress, index) in matchedPickupAddresses" :key="`pickup-address-${index}`" @click="setPickupCoordinates($event)">
-                        {{ matchedPickupAddress.place_name ? matchedPickupAddress.place_name : matchedPickupAddress.name }}
-                        <input type="hidden" class="pickup-place-name" :value="matchedPickupAddress.place_name ?
-                                                                                 matchedPickupAddress.place_name : matchedPickupAddress.name">
-                        <input type="hidden" class="pickup-longitude" :value="matchedPickupAddress.geometry ?
-                                                                                 matchedPickupAddress.geometry.coordinates[0] : matchedPickupAddress.longitude">
-                        <input type="hidden" class="pickup-latitude" :value="matchedPickupAddress.geometry ?
-                                                                                 matchedPickupAddress.geometry.coordinates[1] : matchedPickupAddress.latitude">
-                    </div>
-                </div>
-            </div>
-            <div class="input-group input-group-sm">
-                <input autocomplete="off" type="text" class="form-control input-sm" @keyup="search($event)" id="dropoff-address" placeholder="Dropoff address" v-model="dropoffAddress"
-                       aria-label="dropoff-address" aria-describedby="dropoff-address" @focus="setPickupAddressBlured()">
-                <div class="autocomplete-items">
-                    <div class="search-running" v-if="isPickupAddressSearch === false">
-                        Searching
-                    </div>
-                    <div v-for="(matchedDropoffAddress, index) in matchedDropoffAddresses" :key="`dropoff-address-${index}`" @click="setDropoffCoordinates($event)">
-                        {{ matchedDropoffAddress.place_name ? matchedDropoffAddress.place_name : matchedDropoffAddress.name }}
-                        <input type="hidden" class="dropoff-place-name" :value="matchedDropoffAddress.place_name ?
-                                                                                 matchedDropoffAddress.place_name : matchedDropoffAddress.name">
-                        <input type="hidden" class="dropoff-longitude" :value="matchedDropoffAddress.geometry ?
-                                                                                 matchedDropoffAddress.geometry.coordinates[0] : matchedDropoffAddress.longitude">
-                        <input type="hidden" class="dropoff-latitude" :value="matchedDropoffAddress.geometry ?
-                                                                                 matchedDropoffAddress.geometry.coordinates[1] : matchedDropoffAddress.latitude">
+    <div>
+        <div id="parcel-form-request">
+            <form>
+                <p id="form-header">Parcel request</p>
+                <div class="input-group input-group-sm mb-3">
+                    <input autocomplete="off" type="text" class="form-control input-sm" @keyup="search($event)" id="pickup-address" placeholder="Pickup address" v-model="pickupAddress"
+                        aria-label="pickup-address" aria-describedby="pickup-address" @focus="setPickupAddressFocused()">
+                    <div class="autocomplete-items">
+                        <div class="search-running" v-if="isPickupAddressSearch">
+                            Searching
+                        </div>
+                        <div v-if="currentLocationCoordinates !== null" :class="{ show : isPickupAddressFocused, hide : !isPickupAddressFocused }" @click="setPickupCoordinates($event)">
+                            Your Location ({{ currentLocationName }})
+                            <input type="hidden" class="pickup-place-name" :value="currentLocationName">
+                            <input type="hidden" class="pickup-longitude" :value="currentLocationCoordinates[0]">
+                            <input type="hidden" class="pickup-latitude" :value="currentLocationCoordinates[1]">
+                        </div>
+                        <div v-for="(matchedPickupAddress, index) in matchedPickupAddresses" :key="`pickup-address-${index}`" @click="setPickupCoordinates($event)">
+                            {{ matchedPickupAddress.place_name ? matchedPickupAddress.place_name : matchedPickupAddress.name }}
+                            <input type="hidden" class="pickup-place-name" :value="matchedPickupAddress.place_name ?
+                                                                                    matchedPickupAddress.place_name : matchedPickupAddress.name">
+                            <input type="hidden" class="pickup-longitude" :value="matchedPickupAddress.geometry ?
+                                                                                    matchedPickupAddress.geometry.coordinates[0] : matchedPickupAddress.longitude">
+                            <input type="hidden" class="pickup-latitude" :value="matchedPickupAddress.geometry ?
+                                                                                    matchedPickupAddress.geometry.coordinates[1] : matchedPickupAddress.latitude">
+                        </div>
                     </div>
                 </div>
+                <div class="input-group input-group-sm">
+                    <input autocomplete="off" type="text" class="form-control input-sm" @keyup="search($event)" id="dropoff-address" placeholder="Dropoff address" v-model="dropoffAddress"
+                        aria-label="dropoff-address" aria-describedby="dropoff-address" @focus="setPickupAddressBlured()">
+                    <div class="autocomplete-items">
+                        <div class="search-running" v-if="isPickupAddressSearch === false">
+                            Searching
+                        </div>
+                        <div v-for="(matchedDropoffAddress, index) in matchedDropoffAddresses" :key="`dropoff-address-${index}`" @click="setDropoffCoordinates($event)">
+                            {{ matchedDropoffAddress.place_name ? matchedDropoffAddress.place_name : matchedDropoffAddress.name }}
+                            <input type="hidden" class="dropoff-place-name" :value="matchedDropoffAddress.place_name ?
+                                                                                    matchedDropoffAddress.place_name : matchedDropoffAddress.name">
+                            <input type="hidden" class="dropoff-longitude" :value="matchedDropoffAddress.geometry ?
+                                                                                    matchedDropoffAddress.geometry.coordinates[0] : matchedDropoffAddress.longitude">
+                            <input type="hidden" class="dropoff-latitude" :value="matchedDropoffAddress.geometry ?
+                                                                                    matchedDropoffAddress.geometry.coordinates[1] : matchedDropoffAddress.latitude">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id='parcel-details'>
+            <div class="d-flex bd-highlight mb-4">
+                <div class="me-auto p-2 bd-highlight">&#2547; {{ parcelDetails !== null ? parcelDetails.cost : null }}</div>
+                <div class="p-2 bd-highlight"> {{ parcelDetails !== null ? getFormattedTime(parcelDetails.duration) : null }} | {{ parcelDetails !== null ? parcelDetails.distance : null }} km</div>
             </div>
-        </form>
+        </div>
     </div>
 </template>
 
@@ -52,7 +61,7 @@
     import { apiBaseUrl } from './../App';
 
     export default {
-        props : ['places', 'currentLocationCoordinates', 'currentLocationName'],
+        props : ['places', 'currentLocationCoordinates', 'currentLocationName', 'parcelDetails'],
         mounted() {
             this.initIcons();
         },
@@ -280,6 +289,16 @@
             },
             setPickupAddressBlured() {
                 this.isPickupAddressFocused = false;
+            },
+            getFormattedTime(timeInSeconds) {
+                if(timeInSeconds > 60 * 60) {
+                    return `${(timeInSeconds/60 * 60).toFixed(2)} hours`;
+                } 
+                else if(timeInSeconds > 60) {
+                    return `${(timeInSeconds/60).toFixed(2)} mins`;
+                } else {
+                    return `${timeInSeconds} secs`;
+                }
             }
         }
     }
@@ -293,6 +312,13 @@
         width: 96%;
         background-color: white;
         padding: 6px;
+    }
+    #parcel-details {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: white;
     }
     #form-header {
         text-align: center;
@@ -333,9 +359,9 @@
         text-align: center;
     }
     .hide {
-        visibility: hidden;
+        display: none;
     }
     .show {
-        visibility: visible;
+        display: block;
     }
 </style>

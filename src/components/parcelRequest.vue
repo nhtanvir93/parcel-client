@@ -5,6 +5,8 @@
                 :pickup-coordinates="pickupCoordinates"
                 :dropoff-coordinates="dropoffCoordinates"
                 :search-key="searchKey"
+                @no-details-found="initParcelDetails"
+                @new-details-found="setParcelDetails"
                 @current-location-coordinates="setCurrentLocationCoordinates"
                 @new-places-found="setPlaces">
         </mapbox-map>
@@ -13,6 +15,7 @@
                 @new-pickup-coordinates-found="setPickupCoordinates"
                 @new-dropoff-coordinates-found="setDropoffCoordinates"
                 @new-search-key-found="setSearchKey"
+                :parcel-details="parcelDetails"
                 :current-location-coordinates="currentLocationCoordinates"
                 :current-location-name="currentLocationName"
                 :places="places">
@@ -29,6 +32,9 @@
             'mapbox-map' : Map,
             'parcel-request-form' : ParcelRequestForm
         },
+        mounted() {
+            this.initParcelDetails();
+        },
         data() {
             return {
                 searchKey : null,
@@ -36,7 +42,8 @@
                 currentLocationCoordinates : null,
                 pickupCoordinates : null,
                 dropoffCoordinates : null,
-                currentLocationName : null
+                currentLocationName : null,
+                parcelDetails : null
             };
         },
         methods : {
@@ -59,6 +66,16 @@
             setCurrentLocationCoordinates(currentLocationCoordinates, currentLocationName) {
                 this.currentLocationCoordinates = currentLocationCoordinates;
                 this.currentLocationName = currentLocationName
+            },
+            setParcelDetails(parcelDetails) {
+                this.parcelDetails = parcelDetails;
+            },
+            initParcelDetails() {
+                this.parcelDetails = {
+                    distance : 3.3,
+                    duration : 24 * 60,
+                    cost : 1600.00
+                };
             }
         }
     }
