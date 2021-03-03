@@ -4,8 +4,17 @@
             <p id="form-header">Parcel request</p>
             <div class="input-group input-group-sm mb-3">
                 <input autocomplete="off" type="text" class="form-control input-sm" @keyup="search($event)" id="pickup-address" placeholder="Pickup address" v-model="pickupAddress"
-                       aria-label="pickup-address" aria-describedby="pickup-address">
+                       aria-label="pickup-address" aria-describedby="pickup-address" @focus="setPickupAddressFocused()">
                 <div class="autocomplete-items">
+                    <div class="search-running" v-if="isPickupAddressSearch">
+                        Searching
+                    </div>
+                    <div v-if="currentLocationCoordinates !== null" :class="{ show : isPickupAddressFocused, hide : !isPickupAddressFocused }" @click="setPickupCoordinates($event)">
+                        Your Location ({{ currentLocationName }})
+                        <input type="hidden" class="pickup-place-name" :value="currentLocationName">
+                        <input type="hidden" class="pickup-longitude" :value="currentLocationCoordinates[0]">
+                        <input type="hidden" class="pickup-latitude" :value="currentLocationCoordinates[1]">
+                    </div>
                     <div v-for="(matchedPickupAddress, index) in matchedPickupAddresses" :key="`pickup-address-${index}`" @click="setPickupCoordinates($event)">
                         {{ matchedPickupAddress.place_name ? matchedPickupAddress.place_name : matchedPickupAddress.name }}
                         <input type="hidden" class="pickup-place-name" :value="matchedPickupAddress.place_name ?
@@ -19,8 +28,11 @@
             </div>
             <div class="input-group input-group-sm">
                 <input autocomplete="off" type="text" class="form-control input-sm" @keyup="search($event)" id="dropoff-address" placeholder="Dropoff address" v-model="dropoffAddress"
-                       aria-label="dropoff-address" aria-describedby="dropoff-address">
+                       aria-label="dropoff-address" aria-describedby="dropoff-address" @focus="setPickupAddressBlured()">
                 <div class="autocomplete-items">
+                    <div class="search-running" v-if="isPickupAddressSearch === false">
+                        Searching
+                    </div>
                     <div v-for="(matchedDropoffAddress, index) in matchedDropoffAddresses" :key="`dropoff-address-${index}`" @click="setDropoffCoordinates($event)">
                         {{ matchedDropoffAddress.place_name ? matchedDropoffAddress.place_name : matchedDropoffAddress.name }}
                         <input type="hidden" class="dropoff-place-name" :value="matchedDropoffAddress.place_name ?
@@ -40,7 +52,7 @@
     import { apiBaseUrl } from './../App';
 
     export default {
-        props : ['places'],
+        props : ['places', 'currentLocationCoordinates', 'currentLocationName'],
         mounted() {
             this.initIcons();
         },
@@ -53,6 +65,8 @@
                     this.matchedPickupAddresses = [];
                     this.matchedDropoffAddresses = newPlaces === null ? [] : newPlaces.features;
                 }
+
+                this.isPickupAddressSearch = null;
             }
         },
         data() {
@@ -62,7 +76,8 @@
                 matchedPickupAddresses : [],
                 matchedDropoffAddresses : [],
                 isPickupAddressSearch : null,
-                timer : null
+                timer : null,
+                isPickupAddressFocused : false
             }
         },
         methods : {
@@ -98,6 +113,7 @@
                         root.pickupAddress = null;
                         root.$emit('new-pickup-coordinates-found', root.pickupAddress);
                         root.matchedPickupAddresses = [];
+                        root.isPickupAddressFocused = false;
                     } else {
                         root.dropoffAddress = null;
                         root.$emit('new-dropoff-coordinates-found', root.dropoffAddress);
@@ -140,8 +156,10 @@
                 }
             },
             reloadValidIcon(inputId, value = '') {
-                let targetElement = document.getElementById(inputId);
-                value = value ? targetElement.value : '';
+                if(value == '') {
+                    let targetElement = document.getElementById(inputId);
+                    value = targetElement.value;
+                }
 
                 this.removeOldIcons(inputId);
 
@@ -164,6 +182,7 @@
                     root.reloadValidIcon(targetId, value);
 
                     if(value == '') {
+                        root.isPickupAddressSearch = null;
                         root.$emit('new-search-key-found', null);
                     }
 
@@ -171,10 +190,15 @@
                         root.matchedPickupAddresses = [];
                         root.isPickupAddressSearch = true;
 
+                        let localSearchUrl = `${apiBaseUrl}api/get-matched-locations/${value}?except_longitude=${root.currentLocationCoordinates !== null ? 
+                                root.currentLocationCoordinates[0] : null}&except_latitude=${root.currentLocationCoordinates !== null ? 
+                                root.currentLocationCoordinates[1] : null}`;        
+
                         if(value != '') {
-                            axios.get(`${apiBaseUrl}api/get-matched-locations/${value}`)
+                            axios.get(localSearchUrl)
                                 .then((response) => {
                                     if(response.data.success) {
+                                        root.isPickupAddressSearch = null;
                                         root.matchedPickupAddresses = response.data.data;
                                     } else {
                                         root.$emit('new-search-key-found', value);
@@ -192,6 +216,7 @@
                             axios.get(`${apiBaseUrl}api/get-matched-locations/${value}`)
                                 .then((response) => {
                                     if(response.data.success) {
+                                        root.isPickupAddressSearch = null;
                                         root.matchedDropoffAddresses = response.data.data;
                                     } else {
                                         root.$emit('new-search-key-found', value);
@@ -211,9 +236,13 @@
                     selectedItemDiv.querySelector('input.pickup-latitude').value
                 ];
                 let name = selectedItemDiv.querySelector('input.pickup-place-name').value;
+                
+                this.isPickupAddressFocused = false;
 
                 this.matchedPickupAddresses = [];
                 this.pickupAddress = name;
+                this.reloadValidIcon('pickup-address', this.pickupAddress);
+
                 this.$emit('new-pickup-coordinates-found', coordinates);
 
                 this.saveLocation(name, coordinates);
@@ -228,6 +257,8 @@
 
                 this.matchedDropoffAddresses = [];
                 this.dropoffAddress = name;
+                this.reloadValidIcon('dropoff-address', this.dropoffAddress);
+
                 this.$emit('new-dropoff-coordinates-found', coordinates);
 
                 this.saveLocation(name, coordinates);
@@ -243,6 +274,12 @@
                 }, (error) => {
                     console.log(error.message);
                 });
+            },
+            setPickupAddressFocused() {
+                this.isPickupAddressFocused = true;
+            },
+            setPickupAddressBlured() {
+                this.isPickupAddressFocused = false;
             }
         }
     }
@@ -291,5 +328,14 @@
     .autocomplete-active {
         background-color: DodgerBlue !important;
         color: #ffffff;
+    }
+    .search-running {
+        text-align: center;
+    }
+    .hide {
+        visibility: hidden;
+    }
+    .show {
+        visibility: visible;
     }
 </style>

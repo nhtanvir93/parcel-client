@@ -89,6 +89,8 @@
                                     .setPopup(popup);
 
                                 root.drawCircle();
+
+                                root.getCurrentLocationPlace(root.currentLocationCoordinates);
                             }
                         },
                         function(error) {
@@ -148,7 +150,23 @@
                         root.$emit('new-places-found', null);
                     });
             },
+            remarkCurrentLocation() {
+                let popup = new mapboxgl.Popup()
+                    .setText('Me')
+                    .addTo(this.map);
+
+                this.pickupAddressMarker = new mapboxgl.Marker()
+                    .setLngLat(this.currentLocationCoordinates)
+                    .addTo(this.map)
+                    .setPopup(popup);
+            },
             markPickupAddress(coordinates) {
+                if(JSON.stringify(coordinates) === JSON.stringify(this.currentLocationCoordinates)) {
+                    this.currentLocationMarker.remove();
+                } else if(this.currentLocationMarker === null) {
+                    this.remarkCurrentLocation();
+                }
+
                 let popup = new mapboxgl.Popup()
                     .setText('Pickup')
                     .addTo(this.map);
@@ -224,13 +242,9 @@
                     }
                 });
 
-                let features = turf.points(coordinates);
+                // let features = turf.points(coordinates);
 
-                let center = turf.center(features);
-
-//                this.map.flyTo({
-//                    center : center.geometry.coordinates
-//                });
+                // let center = turf.center(features);
 
                 let bounds = coordinates.reduce(function (bounds, coord) {
                     return bounds.extend(coord);
@@ -323,6 +337,19 @@
                 this.minLatitude = enveloped.bbox[1];
                 this.maxLongitude = enveloped.bbox[2];
                 this.maxLatitude = enveloped.bbox[3];
+            },
+            getCurrentLocationPlace(coordinates) {
+                let searchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`;
+                let root = this;
+
+                axios.get(searchUrl)
+                    .then((response) => {
+                        let data = response.data;
+
+                        root.$emit('current-location-coordinates', root.currentLocationCoordinates, data.features[0].place_name);
+                    }, (error) => {
+                        root.$emit('current-location-coordinates', root.currentLocationCoordinates, 'Your Location');
+                    });
             }
         }
     }
