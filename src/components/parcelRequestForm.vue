@@ -10,7 +10,7 @@
                         <div class="search-running" v-if="isPickupAddressSearch">
                             Searching
                         </div>
-                        <div v-if="currentLocationCoordinates !== null" :class="{ show : isPickupAddressFocused, hide : !isPickupAddressFocused }" @click="setPickupCoordinates($event)">
+                        <div v-if="currentLocationCoordinates !== null" :class="{ show : pickupAddress === null && isPickupAddressFocused, hide : pickupAddress != '' }" @click="setPickupCoordinates($event)">
                             Your Location ({{ currentLocationName }})
                             <input type="hidden" class="pickup-place-name" :value="currentLocationName">
                             <input type="hidden" class="pickup-longitude" :value="currentLocationCoordinates[0]">
@@ -50,8 +50,8 @@
 
         <div id='parcel-details'>
             <div class="d-flex bd-highlight mb-4">
-                <div class="me-auto p-2 bd-highlight">&#2547; {{ parcelDetails !== null ? parcelDetails.cost : null }}</div>
-                <div class="p-2 bd-highlight"> {{ parcelDetails !== null ? getFormattedTime(parcelDetails.duration) : null }} | {{ parcelDetails !== null ? parcelDetails.distance : null }} km</div>
+                <div class="me-auto p-2 bd-highlight"><b>&#2547; {{ parcelDetails !== null ? parcelDetails.cost : null }}</b></div>
+                <div class="p-2 bd-highlight"><b>{{ parcelDetails !== null ? getFormattedTime(parcelDetails.duration) : null }} | {{ parcelDetails !== null ? parcelDetails.distance : null }} km</b></div>
             </div>
         </div>
     </div>
@@ -70,7 +70,7 @@
                 if(this.isPickupAddressSearch) {
                     this.matchedDropoffAddresses = [];
                     this.matchedPickupAddresses = newPlaces === null ? [] : newPlaces.features;
-                } else {
+                } else if(this.isPickupAddressSearch == false) {
                     this.matchedPickupAddresses = [];
                     this.matchedDropoffAddresses = newPlaces === null ? [] : newPlaces.features;
                 }

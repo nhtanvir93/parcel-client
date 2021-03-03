@@ -26,7 +26,7 @@
                 minLatitude : null,
                 maxLongitude : null,
                 maxLatitude : null,
-                perKmFuelCost : .05
+                perKmFuelCost : 16
             };
         },
         watch : {
@@ -241,7 +241,7 @@
                     },
                     'paint': {
                         'line-color': '#888',
-                        'line-width': 8
+                        'line-width': 4
                     }
                 });
 
@@ -254,7 +254,7 @@
                 }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[1]));
 
                 this.map.fitBounds(bounds, {
-                    padding: 50
+                    padding: 80
                 });
 
                 this.getParcelDetails();
@@ -291,7 +291,7 @@
                     }, new mapboxgl.LngLatBounds(getCircleBoundaries[0], getCircleBoundaries[1]));
 
                     root.map.fitBounds(bounds, {
-                        padding: 50
+                        padding: 80
                     });
 
                     root.setRectangleBoundaryBox(circle.geometry.coordinates[0]);
