@@ -292,7 +292,7 @@
             },
             getFormattedTime(timeInSeconds) {
                 if(timeInSeconds > 60 * 60) {
-                    return `${(timeInSeconds/60 * 60).toFixed(2)} hours`;
+                    return `${(timeInSeconds/(60 * 60)).toFixed(2)} hours`;
                 } 
                 else if(timeInSeconds > 60) {
                     return `${(timeInSeconds/60).toFixed(2)} mins`;
